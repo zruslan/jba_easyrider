@@ -1,0 +1,8 @@
+/.idea/
+/Problems/
+/requirements.txt
+*.html
+*.yaml
+/main.py
+/test_helper.py
+/Easy Rider Bus Company/task/tests.py
