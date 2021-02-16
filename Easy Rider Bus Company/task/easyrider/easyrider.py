@@ -73,11 +73,24 @@ test2 = '[{"bus_id": 128, "stop_id": 1, "stop_name": "Prospekt Av.", "next_stop"
         '"stop_name": "bourbon street", "next_stop": 6, "stop_type": "S", "a_time": "38:13"}, {"bus_id": 512, ' \
         '"stop_id": 6, "stop_name": "Sunset Boulevard", "next_stop": 0, "stop_type": "F", "a_time": "08:16"}] '
 
+test3 = '[{"bus_id": 128, "stop_id": 1, "stop_name": "Prospekt Avenue", "next_stop": 3, "stop_type": "S", "a_time": ' \
+        '"08:12"}, {"bus_id": 128, "stop_id": 3, "stop_name": "Elm Street", "next_stop": 5, "stop_type": "", ' \
+        '"a_time": "08:19"}, {"bus_id": 128, "stop_id": 5, "stop_name": "Fifth Avenue", "next_stop": 7, "stop_type": ' \
+        '"O", "a_time": "08:25"}, {"bus_id": 128, "stop_id": 7, "stop_name": "Sesame Street", "next_stop": 0, ' \
+        '"stop_type": "F", "a_time": "08:37"}, {"bus_id": 256, "stop_id": 2, "stop_name": "Pilotow Street", ' \
+        '"next_stop": 3, "stop_type": "S", "a_time": "09:20"}, {"bus_id": 256, "stop_id": 3, "stop_name": "Elm ' \
+        'Street", "next_stop": 6, "stop_type": "", "a_time": "09:45"}, {"bus_id": 256, "stop_id": 6, "stop_name": ' \
+        '"Sunset Boulevard", "next_stop": 7, "stop_type": "", "a_time": "09:59"}, {"bus_id": 256, "stop_id": 7, ' \
+        '"stop_name": "Sesame Street", "next_stop": 0, "stop_type": "F", "a_time": "10:12"}, {"bus_id": 512, ' \
+        '"stop_id": 4, "stop_name": "Bourbon Street", "next_stop": 6, "stop_type": "S", "a_time": "08:13"}, ' \
+        '{"bus_id": 512, "stop_id": 6, "stop_name": "Sunset Boulevard", "next_stop": 0, "stop_type": "F", ' \
+        '"a_time": "08:16"}] '
+
 test_str = """[
     {
         "bus_id": 128,
         "stop_id": 1,
-        "stop_name": "Prospekt Av.",
+        "stop_name": "Prospekt Avenue",
         "next_stop": 3,
         "stop_type": "S",
         "a_time": "08:12"
@@ -88,14 +101,14 @@ test_str = """[
         "stop_name": "Elm Street",
         "next_stop": 5,
         "stop_type": "",
-        "a_time": "8:19"
+        "a_time": "08:19"
     },
     {
         "bus_id": 128,
         "stop_id": 5,
         "stop_name": "Fifth Avenue",
         "next_stop": 7,
-        "stop_type": "OO",
+        "stop_type": "O",
         "a_time": "08:25"
     },
     {
@@ -104,7 +117,7 @@ test_str = """[
         "stop_name": "Sesame Street",
         "next_stop": 0,
         "stop_type": "F",
-        "a_time": "08:77"
+        "a_time": "08:37"
     },
     {
         "bus_id": 256,
@@ -117,7 +130,7 @@ test_str = """[
     {
         "bus_id": 256,
         "stop_id": 3,
-        "stop_name": "Elm",
+        "stop_name": "Elm Street",
         "next_stop": 6,
         "stop_type": "",
         "a_time": "09:45"
@@ -127,7 +140,7 @@ test_str = """[
         "stop_id": 6,
         "stop_name": "Sunset Boulevard",
         "next_stop": 7,
-        "stop_type": "A",
+        "stop_type": "",
         "a_time": "09:59"
     },
     {
@@ -136,15 +149,15 @@ test_str = """[
         "stop_name": "Sesame Street",
         "next_stop": 0,
         "stop_type": "F",
-        "a_time": "10.12"
+        "a_time": "10:12"
     },
     {
         "bus_id": 512,
         "stop_id": 4,
-        "stop_name": "bourbon street",
+        "stop_name": "Bourbon Street",
         "next_stop": 6,
         "stop_type": "S",
-        "a_time": "38:13"
+        "a_time": "08:13"
     },
     {
         "bus_id": 512,
@@ -175,5 +188,18 @@ for r in v_arr:
                 errors[f["name"]] = errors[f["name"]] + 1
         elif f["required"]:
             errors[f["name"]] = errors[f["name"]] + 1
-print("Type and required field validation: {} errors".format(sum(errors.values())))
-print("\n".join([k + ": " + str(v) for k, v in errors.items()]))
+
+# print("Type and required field validation: {} errors".format(sum(errors.values())))
+# print("\n".join([k + ": " + str(v) for k, v in errors.items()]))
+
+bus_stat = dict()
+
+for r in v_arr:
+    new_set = bus_stat.get(r["bus_id"], set())
+    new_set.add(r["stop_id"])
+    bus_stat.update([(r["bus_id"], new_set)])
+
+print("Line names and number of stops:")
+print("\n".join(["bus_id: " + str(k) + ", stops: " + str(len(v)) for k, v in bus_stat.items()]))
+
+
