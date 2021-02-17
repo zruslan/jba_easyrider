@@ -94,6 +94,19 @@ test4 = '[{"bus_id": 128, "stop_id": 1, "stop_name": "Prospekt Avenue", "next_st
         '"next_stop": 6, "stop_type": "", "a_time": "08:13"}, {"bus_id": 512, "stop_id": 6, "stop_name": "Sunset ' \
         'Boulevard", "next_stop": 0, "stop_type": "F", "a_time": "08:16"}] '
 
+test5 = '[{"bus_id": 128, "stop_id": 1, "stop_name": "Prospekt Avenue", "next_stop": 3, "stop_type": "S", "a_time": ' \
+        '"08:12"}, {"bus_id": 128, "stop_id": 3, "stop_name": "Elm Street", "next_stop": 5, "stop_type": "", ' \
+        '"a_time": "08:19"}, {"bus_id": 128, "stop_id": 5, "stop_name": "Fifth Avenue", "next_stop": 7, "stop_type": ' \
+        '"O", "a_time": "08:17"}, {"bus_id": 128, "stop_id": 7, "stop_name": "Sesame Street", "next_stop": 0, ' \
+        '"stop_type": "F", "a_time": "08:07"}, {"bus_id": 256, "stop_id": 2, "stop_name": "Pilotow Street", ' \
+        '"next_stop": 3, "stop_type": "S", "a_time": "09:20"}, {"bus_id": 256, "stop_id": 3, "stop_name": "Elm ' \
+        'Street", "next_stop": 6, "stop_type": "", "a_time": "09:45"}, {"bus_id": 256, "stop_id": 6, "stop_name": ' \
+        '"Sunset Boulevard", "next_stop": 7, "stop_type": "", "a_time": "09:44"}, {"bus_id": 256, "stop_id": 7, ' \
+        '"stop_name": "Sesame Street", "next_stop": 0, "stop_type": "F", "a_time": "10:12"}, {"bus_id": 512, ' \
+        '"stop_id": 4, "stop_name": "Bourbon Street", "next_stop": 6, "stop_type": "S", "a_time": "08:13"}, ' \
+        '{"bus_id": 512, "stop_id": 6, "stop_name": "Sunset Boulevard", "next_stop": 0, "stop_type": "F", ' \
+        '"a_time": "08:16"}] '
+
 test_str = """[
     {
         "bus_id": 128,
@@ -117,7 +130,7 @@ test_str = """[
         "stop_name": "Fifth Avenue",
         "next_stop": 7,
         "stop_type": "O",
-        "a_time": "08:25"
+        "a_time": "08:17"
     },
     {
         "bus_id": 128,
@@ -125,14 +138,46 @@ test_str = """[
         "stop_name": "Sesame Street",
         "next_stop": 0,
         "stop_type": "F",
-        "a_time": "08:37"
+        "a_time": "08:07"
+    },
+    {
+        "bus_id": 256,
+        "stop_id": 2,
+        "stop_name": "Pilotow Street",
+        "next_stop": 3,
+        "stop_type": "S",
+        "a_time": "09:20"
+    },
+    {
+        "bus_id": 256,
+        "stop_id": 3,
+        "stop_name": "Elm Street",
+        "next_stop": 6,
+        "stop_type": "",
+        "a_time": "09:45"
+    },
+    {
+        "bus_id": 256,
+        "stop_id": 6,
+        "stop_name": "Sunset Boulevard",
+        "next_stop": 7,
+        "stop_type": "",
+        "a_time": "09:44"
+    },
+    {
+        "bus_id": 256,
+        "stop_id": 7,
+        "stop_name": "Sesame Street",
+        "next_stop": 0,
+        "stop_type": "F",
+        "a_time": "10:12"
     },
     {
         "bus_id": 512,
         "stop_id": 4,
         "stop_name": "Bourbon Street",
         "next_stop": 6,
-        "stop_type": "",
+        "stop_type": "S",
         "a_time": "08:13"
     },
     {
@@ -151,7 +196,7 @@ test_str = """[
 input_str = input()
 # v_arr = json.loads(test_str)
 if not input_str:
-    input_str = test4
+    input_str = test5
 
 v_arr = json.loads(input_str)
 
@@ -179,11 +224,12 @@ finish_stops = set()
 
 for item in v_arr:
     bus_id = item.pop('bus_id')
-    line = lines[bus_id] = lines.get(bus_id,  {"start": None, "finish": None, "stops": []})
-    line["stops"].append(item)
+    stop_id = item.pop("stop_id")
 
-    stop_id = item["stop_id"]
+    line = lines[bus_id] = lines.get(bus_id,  {"start": None, "finish": None, "stops": dict()})
     stop = stops[stop_id] = stops.get(stop_id,  {"stop_name": item["stop_name"], "lines": []})
+
+    line["stops"][stop_id] = item
     stop["lines"].append(bus_id)
 
     if item["stop_type"] == "S":
@@ -204,6 +250,9 @@ for item in v_arr:
 # print(lines)
 # print(stops)
 
+# print("Line names and number of stops:")
+# print("\n".join(["bus_id: " + str(k) + ", stops: " + str(len(v)) for k, v in lines.items()]))
+
 for bus_id, line in lines.items():
     if line['start'] is None or line['finish'] is None:
         print(f"There is no start or end stop for the line: {bus_id}")
@@ -211,12 +260,27 @@ for bus_id, line in lines.items():
 
 transfer_stops = [v["stop_name"] for v in stops.values() if len(v["lines"]) > 1]
 
-print(f"Start stops: {len(start_stops)} {sorted(start_stops)}")
-print(f"Transfer stops: {len(transfer_stops)} {sorted(transfer_stops)}")
-print(f"Finish stops: {len(finish_stops)} {sorted(finish_stops)}")
+# print("Start stops:", len(start_stops), sorted(start_stops))
+# print("Transfer stops:", len(transfer_stops), sorted(transfer_stops))
+# print("Finish stops:", len(finish_stops), sorted(finish_stops))
 
+wrong_time_stops = dict()
 
-# print("Line names and number of stops:")
-# print("\n".join(["bus_id: " + str(k) + ", stops: " + str(len(v)) for k, v in lines.items()]))
+for bus_id, line in lines.items():
+    l_stops = line["stops"]
+    cur_s = l_stops[line["start"]]
+    while cur_s["next_stop"]:
+        next_s = l_stops[cur_s["next_stop"]]
+        if cur_s["a_time"] >= next_s["a_time"]:
+            wrong_time_stops[bus_id] = next_s["stop_name"]
+            break
+        cur_s = next_s
 
+# print(wrong_time_stops)
 
+print("Arrival time test:")
+if len(wrong_time_stops):
+    for bus_id, stop in wrong_time_stops.items():
+        print(f"bus_id line {bus_id}: wrong time on station {stop}")
+else:
+    print("OK")
