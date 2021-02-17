@@ -107,6 +107,32 @@ test5 = '[{"bus_id": 128, "stop_id": 1, "stop_name": "Prospekt Avenue", "next_st
         '{"bus_id": 512, "stop_id": 6, "stop_name": "Sunset Boulevard", "next_stop": 0, "stop_type": "F", ' \
         '"a_time": "08:16"}] '
 
+test6 = '[{"bus_id": 128, "stop_id": 1, "stop_name": "Prospekt Avenue", "next_stop": 3, "stop_type": "S", "a_time": ' \
+        '"08:12"}, {"bus_id": 128, "stop_id": 3, "stop_name": "Elm Street", "next_stop": 5, "stop_type": "O", ' \
+        '"a_time": "08:19"}, {"bus_id": 128, "stop_id": 5, "stop_name": "Fifth Avenue", "next_stop": 7, "stop_type": ' \
+        '"O", "a_time": "08:25"}, {"bus_id": 128, "stop_id": 7, "stop_name": "Sesame Street", "next_stop": 0, ' \
+        '"stop_type": "F", "a_time": "08:37"}, {"bus_id": 256, "stop_id": 2, "stop_name": "Pilotow Street", ' \
+        '"next_stop": 3, "stop_type": "S", "a_time": "09:20"}, {"bus_id": 256, "stop_id": 3, "stop_name": "Elm ' \
+        'Street", "next_stop": 6, "stop_type": "", "a_time": "09:45"}, {"bus_id": 256, "stop_id": 6, "stop_name": ' \
+        '"Sunset Boulevard", "next_stop": 7, "stop_type": "O", "a_time": "09:59"}, {"bus_id": 256, "stop_id": 7, ' \
+        '"stop_name": "Sesame Street", "next_stop": 0, "stop_type": "F", "a_time": "10:12"}, {"bus_id": 512, ' \
+        '"stop_id": 4, "stop_name": "Bourbon Street", "next_stop": 6, "stop_type": "S", "a_time": "08:13"}, ' \
+        '{"bus_id": 512, "stop_id": 6, "stop_name": "Sunset Boulevard", "next_stop": 0, "stop_type": "F", ' \
+        '"a_time": "08:16"}] '
+
+test7 = '[{"bus_id" : 128, "stop_id" : 1, "stop_name" : "Prospekt Avenue", "next_stop" : 3, "stop_type" : "S", ' \
+        '"a_time" : "08:12"}, {"bus_id" : 128, "stop_id" : 3, "stop_name" : "Elm Street", "next_stop" : 5, ' \
+        '"stop_type" : "O", "a_time" : "08:19"}, {"bus_id" : 128, "stop_id" : 5, "stop_name" : "Fifth Avenue", ' \
+        '"next_stop" : 7, "stop_type" : "O", "a_time" : "08:25"}, {"bus_id" : 128, "stop_id" : 7, "stop_name" : ' \
+        '"Sesame Street", "next_stop" : 0, "stop_type" : "F", "a_time" : "08:37"}, {"bus_id" : 256, "stop_id" : 2, ' \
+        '"stop_name" : "Pilotow Street", "next_stop" : 3, "stop_type" : "S", "a_time" : "09:20"}, {"bus_id" : 256, ' \
+        '"stop_id" : 3, "stop_name" : "Elm Street", "next_stop" : 6, "stop_type" : "", "a_time" : "09:45"}, ' \
+        '{"bus_id" : 256, "stop_id" : 6, "stop_name" : "Abbey Road", "next_stop" : 7, "stop_type" : "O", "a_time" : ' \
+        '"09:59"}, {"bus_id" : 256, "stop_id" : 7, "stop_name" : "Sesame Street", "next_stop" : 0, "stop_type" : "F", ' \
+        '"a_time" : "10:12"}, {"bus_id" : 512, "stop_id" : 4, "stop_name" : "Bourbon Street", "next_stop" : 6, ' \
+        '"stop_type" : "S", "a_time" : "08:13"}, {"bus_id" : 512, "stop_id" : 6, "stop_name" : "Abbey Road", ' \
+        '"next_stop" : 0, "stop_type" : "F", "a_time" : "08:16"}] '
+
 test_str = """[
     {
         "bus_id": 128,
@@ -121,7 +147,7 @@ test_str = """[
         "stop_id": 3,
         "stop_name": "Elm Street",
         "next_stop": 5,
-        "stop_type": "",
+        "stop_type": "O",
         "a_time": "08:19"
     },
     {
@@ -130,7 +156,7 @@ test_str = """[
         "stop_name": "Fifth Avenue",
         "next_stop": 7,
         "stop_type": "O",
-        "a_time": "08:17"
+        "a_time": "08:25"
     },
     {
         "bus_id": 128,
@@ -138,7 +164,7 @@ test_str = """[
         "stop_name": "Sesame Street",
         "next_stop": 0,
         "stop_type": "F",
-        "a_time": "08:07"
+        "a_time": "08:37"
     },
     {
         "bus_id": 256,
@@ -161,8 +187,8 @@ test_str = """[
         "stop_id": 6,
         "stop_name": "Sunset Boulevard",
         "next_stop": 7,
-        "stop_type": "",
-        "a_time": "09:44"
+        "stop_type": "O",
+        "a_time": "09:59"
     },
     {
         "bus_id": 256,
@@ -193,11 +219,10 @@ test_str = """[
 # print(test)
 # print(json.dumps(json.loads(test_str)))
 # print(test4)
-input_str = input()
-# v_arr = json.loads(test_str)
-if not input_str:
-    input_str = test5
 
+input_str = input()
+if not input_str:
+    input_str = test6
 v_arr = json.loads(input_str)
 
 errors = dict.fromkeys([x["name"] for x in FIELDS if x["need_to_validate"]], 0)
@@ -223,8 +248,8 @@ start_stops = set()
 finish_stops = set()
 
 for item in v_arr:
-    bus_id = item.pop('bus_id')
-    stop_id = item.pop("stop_id")
+    bus_id = item['bus_id']
+    stop_id = item["stop_id"]
 
     line = lines[bus_id] = lines.get(bus_id,  {"start": None, "finish": None, "stops": dict()})
     stop = stops[stop_id] = stops.get(stop_id,  {"stop_name": item["stop_name"], "lines": []})
@@ -278,9 +303,22 @@ for bus_id, line in lines.items():
 
 # print(wrong_time_stops)
 
-print("Arrival time test:")
-if len(wrong_time_stops):
-    for bus_id, stop in wrong_time_stops.items():
-        print(f"bus_id line {bus_id}: wrong time on station {stop}")
+# print("Arrival time test:")
+#if len(wrong_time_stops):
+#    for bus_id, stop in wrong_time_stops.items():
+#        print(f"bus_id line {bus_id}: wrong time on station {stop}")
+#else:
+#    print("OK")
+
+wrong_on_demand = []
+
+for item in v_arr:
+    if item["stop_type"] == "O" and item["stop_name"] in transfer_stops:
+        wrong_on_demand.append(item["stop_name"])
+
+print("On demand stops test:")
+if len(wrong_on_demand):
+    print("Wrong stop type:",  sorted(wrong_on_demand))
 else:
     print("OK")
+
