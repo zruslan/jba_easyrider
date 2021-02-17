@@ -71,6 +71,7 @@ def print_bus_line_info(bus_data: list[Bus]):
         print(f"bus_id: {bus_id}, stops: {stops}")
 
 
+# Stage 4 Function
 def validate_stops(bus_data: list[Bus]) -> bool:
     all_bus_ids: set[int] = {bus.bus_id for bus in bus_data}
     bus_id_to_stop_types: dict[int, set[str]] = {bus_id: set() for bus_id in all_bus_ids}
@@ -85,24 +86,72 @@ def validate_stops(bus_data: list[Bus]) -> bool:
     return True
 
 
-def print_special_stops(bus_data: list[Bus]):
+# Stage 4 Function refactored
+def get_special_stops(bus_data: list[Bus]) -> tuple[set, set, set]:
     all_stop_ids: list[int] = [bus.stop_id for bus in bus_data]
     all_next_stops: list[int] = [bus.next_stop for bus in bus_data]
     start_stops: set[str] = {bus.stop_name for bus in bus_data if bus.stop_id not in all_next_stops}
     transfer_stops: set[str] = {bus.stop_name for bus in bus_data if all_stop_ids.count(bus.stop_id) > 1}
     finish_stops: set[str] = {bus.stop_name for bus in bus_data if bus.next_stop not in all_stop_ids}
 
+    return start_stops, transfer_stops, finish_stops
+
+
+# Stage 4 Function
+def print_special_stops(bus_data: list[Bus]):
+    # Moved "get" methods to another function during Stage 6
+    start_stops, transfer_stops, finish_stops = get_special_stops(bus_data)
     print("Start stops:", len(start_stops), sorted(start_stops))
     print("Transfer stops:", len(transfer_stops), sorted(transfer_stops))
     print("Finish stops:", len(finish_stops), sorted(finish_stops))
 
 
+# Stage 5 Function
+def validate_arrival_times(bus_data: list[Bus]):
+    all_bus_ids: set[int] = {bus.bus_id for bus in bus_data}
+    bus_id_to_a_times: dict[int, list[Bus]] = {bus_id: [] for bus_id in all_bus_ids}
+    for bus in bus_data:
+        bus_id_to_a_times[bus.bus_id].append(bus)
+
+    error_tally: list[tuple[int, str]] = []
+    # The following assumes that stop_id and next_stop are sorted correctly
+    for bus_id, bus_sublist in bus_id_to_a_times.items():
+        for i, bus in enumerate(bus_sublist):
+            if i > 0 and bus_sublist[i - 1].a_time > bus.a_time:
+                error_tally.append((bus_id, bus.stop_name))
+                break
+
+    print("Arrival time test:")
+    if len(error_tally) == 0:
+        return print("OK")
+
+    for bus_id, stop_name in error_tally:
+        print(f"bus_id line {bus_id}: wrong time on station {stop_name}")
+
+
+# Stage 6 Function
+def validate_on_demand_stops(bus_data: list[Bus]):
+    start_stops, transfer_stops, finish_stops = get_special_stops(bus_data)
+    all_special_stops: set[str] = start_stops | transfer_stops | finish_stops
+
+    error_tally: list = []
+    for bus in bus_data:
+        if bus.stop_type == 'O' and bus.stop_name in all_special_stops:
+            error_tally.append(bus.stop_name)
+
+    print("On demand stops test:")
+    if len(error_tally) == 0:
+        print("OK")
+    else:
+        error_tally.sort()
+        print(f"Wrong stop type: {error_tally}")
+
+
 def main():
     buses: list[dict] = input_json()
     bus_data = [Bus(**bus) for bus in buses]
-    # relevant_fields: list[str] = ["stop_name", "stop_type", "a_time"]
-    if validate_stops(bus_data):
-        print_special_stops(bus_data)
+    # relevant_fields: list[str] = ["stop_name", "stop_type", "a_time"]  # Stage 3 input
+    validate_on_demand_stops(bus_data)
 
 
 if __name__ == "__main__":
