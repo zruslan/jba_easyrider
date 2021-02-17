@@ -86,6 +86,14 @@ test3 = '[{"bus_id": 128, "stop_id": 1, "stop_name": "Prospekt Avenue", "next_st
         '{"bus_id": 512, "stop_id": 6, "stop_name": "Sunset Boulevard", "next_stop": 0, "stop_type": "F", ' \
         '"a_time": "08:16"}] '
 
+test4 = '[{"bus_id": 128, "stop_id": 1, "stop_name": "Prospekt Avenue", "next_stop": 3, "stop_type": "S", "a_time": ' \
+        '"08:12"}, {"bus_id": 128, "stop_id": 3, "stop_name": "Elm Street", "next_stop": 5, "stop_type": "", ' \
+        '"a_time": "08:19"}, {"bus_id": 128, "stop_id": 5, "stop_name": "Fifth Avenue", "next_stop": 7, "stop_type": ' \
+        '"O", "a_time": "08:25"}, {"bus_id": 128, "stop_id": 7, "stop_name": "Sesame Street", "next_stop": 0, ' \
+        '"stop_type": "F", "a_time": "08:37"}, {"bus_id": 512, "stop_id": 4, "stop_name": "Bourbon Street", ' \
+        '"next_stop": 6, "stop_type": "", "a_time": "08:13"}, {"bus_id": 512, "stop_id": 6, "stop_name": "Sunset ' \
+        'Boulevard", "next_stop": 0, "stop_type": "F", "a_time": "08:16"}] '
+
 test_str = """[
     {
         "bus_id": 128,
@@ -120,43 +128,11 @@ test_str = """[
         "a_time": "08:37"
     },
     {
-        "bus_id": 256,
-        "stop_id": 2,
-        "stop_name": "Pilotow Street",
-        "next_stop": 3,
-        "stop_type": "S",
-        "a_time": "09:20"
-    },
-    {
-        "bus_id": 256,
-        "stop_id": 3,
-        "stop_name": "Elm Street",
-        "next_stop": 6,
-        "stop_type": "",
-        "a_time": "09:45"
-    },
-    {
-        "bus_id": 256,
-        "stop_id": 6,
-        "stop_name": "Sunset Boulevard",
-        "next_stop": 7,
-        "stop_type": "",
-        "a_time": "09:59"
-    },
-    {
-        "bus_id": 256,
-        "stop_id": 7,
-        "stop_name": "Sesame Street",
-        "next_stop": 0,
-        "stop_type": "F",
-        "a_time": "10:12"
-    },
-    {
         "bus_id": 512,
         "stop_id": 4,
         "stop_name": "Bourbon Street",
         "next_stop": 6,
-        "stop_type": "S",
+        "stop_type": "",
         "a_time": "08:13"
     },
     {
@@ -171,9 +147,13 @@ test_str = """[
 """
 # print(test)
 # print(json.dumps(json.loads(test_str)))
-# print(test2)
-v_arr = json.loads(input())
+# print(test4)
+input_str = input()
 # v_arr = json.loads(test_str)
+if not input_str:
+    input_str = test4
+
+v_arr = json.loads(input_str)
 
 errors = dict.fromkeys([x["name"] for x in FIELDS if x["need_to_validate"]], 0)
 
@@ -192,14 +172,51 @@ for r in v_arr:
 # print("Type and required field validation: {} errors".format(sum(errors.values())))
 # print("\n".join([k + ": " + str(v) for k, v in errors.items()]))
 
-bus_stat = dict()
+lines = dict()
+stops = dict()  # {item["stop_id"]: item["stop_name"] for item in v_arr}
+start_stops = set()
+finish_stops = set()
 
-for r in v_arr:
-    new_set = bus_stat.get(r["bus_id"], set())
-    new_set.add(r["stop_id"])
-    bus_stat.update([(r["bus_id"], new_set)])
+for item in v_arr:
+    bus_id = item.pop('bus_id')
+    line = lines[bus_id] = lines.get(bus_id,  {"start": None, "finish": None, "stops": []})
+    line["stops"].append(item)
 
-print("Line names and number of stops:")
-print("\n".join(["bus_id: " + str(k) + ", stops: " + str(len(v)) for k, v in bus_stat.items()]))
+    stop_id = item["stop_id"]
+    stop = stops[stop_id] = stops.get(stop_id,  {"stop_name": item["stop_name"], "lines": []})
+    stop["lines"].append(bus_id)
+
+    if item["stop_type"] == "S":
+        if line["start"] is None:
+            line["start"] = stop_id
+            start_stops.add(item["stop_name"])
+        else:
+            print(f"Start point is duplicated for the line: {bus_id}")
+            exit()
+    elif item["stop_type"] == "F":
+        if line["finish"] is None:
+            line["finish"] = stop_id
+            finish_stops.add(item["stop_name"])
+        else:
+            print(f"Final stop is duplicated for the line: {bus_id}")
+            exit()
+
+# print(lines)
+# print(stops)
+
+for bus_id, line in lines.items():
+    if line['start'] is None or line['finish'] is None:
+        print(f"There is no start or end stop for the line: {bus_id}")
+        exit()
+
+transfer_stops = [v["stop_name"] for v in stops.values() if len(v["lines"]) > 1]
+
+print(f"Start stops: {len(start_stops)} {sorted(start_stops)}")
+print(f"Transfer stops: {len(transfer_stops)} {sorted(transfer_stops)}")
+print(f"Finish stops: {len(finish_stops)} {sorted(finish_stops)}")
+
+
+# print("Line names and number of stops:")
+# print("\n".join(["bus_id: " + str(k) + ", stops: " + str(len(v)) for k, v in lines.items()]))
 
 
